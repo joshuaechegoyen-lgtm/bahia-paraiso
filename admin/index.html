@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Bahía Paraíso</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --azul:#2A7FBF;--azul-oscuro:#0F3D5C;--naranja:#D4580A;
+  --verde:#2E7D32;--rojo:#C62828;--gris:#6B7280;
+  --fondo:#F0F4F8;--blanco:#fff;--borde:#E2E8F0;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--fondo);color:var(--azul-oscuro);min-height:100vh}
+header{background:var(--azul-oscuro);color:#fff;padding:18px 32px;display:flex;justify-content:space-between;align-items:center}
+header h1{font-size:18px;font-weight:600}
+header span{font-size:12px;opacity:.6}
+#login{display:flex;justify-content:center;align-items:center;min-height:80vh}
+.login-box{background:var(--blanco);border-radius:12px;padding:40px;width:100%;max-width:360px;box-shadow:0 4px 24px rgba(0,0,0,.08)}
+.login-box h2{margin-bottom:20px;font-size:20px;color:var(--azul-oscuro)}
+.login-box input{width:100%;padding:12px 14px;border:1px solid var(--borde);border-radius:8px;font-size:15px;margin-bottom:14px}
+.login-box input:focus{outline:none;border-color:var(--azul)}
+.btn{display:inline-flex;align-items:center;justify-content:center;padding:11px 22px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:background .2s}
+.btn-azul{background:var(--azul);color:#fff;width:100%}
+.btn-azul:hover{background:#1e6fa8}
+#panel{display:none;padding:28px 32px;max-width:1200px;margin:0 auto}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+.stat{background:var(--blanco);border-radius:10px;padding:20px 22px;border:1px solid var(--borde)}
+.stat-num{font-size:32px;font-weight:700;color:var(--azul);line-height:1}
+.stat-label{font-size:11px;color:var(--gris);text-transform:uppercase;letter-spacing:1.5px;margin-top:6px}
+.tabla-wrap{background:var(--blanco);border-radius:12px;border:1px solid var(--borde);overflow:hidden}
+.tabla-header{padding:16px 22px;border-bottom:1px solid var(--borde);display:flex;justify-content:space-between;align-items:center}
+.tabla-header h2{font-size:15px;font-weight:600}
+table{width:100%;border-collapse:collapse}
+th{padding:11px 16px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:var(--gris);background:#F8FAFC;border-bottom:1px solid var(--borde)}
+td{padding:13px 16px;font-size:13px;border-bottom:1px solid var(--borde)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#F8FAFC}
+.estado-badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px}
+.estado-nuevo{background:#EBF5FB;color:var(--azul)}
+.estado-contactado{background:#E8F5E9;color:var(--verde)}
+.estado-cerrado{background:#FFF3E0;color:var(--naranja)}
+.estado-descartado{background:#FDECEA;color:var(--rojo)}
+.acciones{display:flex;gap:6px;flex-wrap:wrap}
+.btn-accion{padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;border:1px solid;cursor:pointer;background:transparent;transition:all .15s}
+.btn-contactado{color:var(--verde);border-color:var(--verde)}
+.btn-contactado:hover{background:var(--verde);color:#fff}
+.btn-cerrado{color:var(--naranja);border-color:var(--naranja)}
+.btn-cerrado:hover{background:var(--naranja);color:#fff}
+.btn-descartado{color:var(--rojo);border-color:var(--rojo)}
+.btn-descartado:hover{background:var(--rojo);color:#fff}
+.empty{padding:40px;text-align:center;color:var(--gris);font-size:14px}
+@media(max-width:700px){
+  .stats{grid-template-columns:1fr 1fr}
+  #panel{padding:16px}
+  .tabla-wrap{overflow-x:auto}
+  table{min-width:620px}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>Bahía Paraíso — Admin</h1>
+  <span id="admin-user"></span>
+</header>
+
+<div id="login">
+  <div class="login-box">
+    <h2>Acceso al panel</h2>
+    <input type="password" id="pass-input" placeholder="Contraseña" onkeydown="if(event.key==='Enter')entrar()">
+    <button class="btn btn-azul" onclick="entrar()">Entrar</button>
+    <p id="login-error" style="color:var(--rojo);font-size:12px;margin-top:10px;display:none">Contraseña incorrecta</p>
+  </div>
+</div>
+
+<div id="panel">
+  <div class="stats">
+    <div class="stat"><div class="stat-num" id="cnt-hoy">—</div><div class="stat-label">Hoy</div></div>
+    <div class="stat"><div class="stat-num" id="cnt-semana">—</div><div class="stat-label">Esta semana</div></div>
+    <div class="stat"><div class="stat-num" id="cnt-mes">—</div><div class="stat-label">Este mes</div></div>
+    <div class="stat"><div class="stat-num" id="cnt-total">—</div><div class="stat-label">Total</div></div>
+  </div>
+  <div class="tabla-wrap">
+    <div class="tabla-header">
+      <h2>Leads</h2>
+      <button class="btn btn-azul" style="width:auto" onclick="cargar()">↻ Actualizar</button>
+    </div>
+    <div id="tabla-body"></div>
+  </div>
+</div>
+
+<script>
+let password = '';
+
+function entrar() {
+  const val = document.getElementById('pass-input').value.trim();
+  if (!val) return;
+  password = val;
+  cargar();
+}
+
+async function cargar() {
+  const res = await fetch('/api/leads', {
+    headers: { 'x-admin-password': password }
+  });
+  if (res.status === 401) {
+    document.getElementById('login-error').style.display = 'block';
+    return;
+  }
+  document.getElementById('login-error').style.display = 'none';
+  document.getElementById('login').style.display = 'none';
+  document.getElementById('panel').style.display = 'block';
+
+  const data = await res.json();
+  const c = data.contadores;
+  document.getElementById('cnt-hoy').textContent = c.hoy ?? 0;
+  document.getElementById('cnt-semana').textContent = c.semana ?? 0;
+  document.getElementById('cnt-mes').textContent = c.mes ?? 0;
+  document.getElementById('cnt-total').textContent = c.total ?? 0;
+
+  renderTabla(data.leads);
+}
+
+function renderTabla(leads) {
+  const wrap = document.getElementById('tabla-body');
+  if (!leads.length) {
+    wrap.innerHTML = '<div class="empty">No hay leads todavía</div>';
+    return;
+  }
+  wrap.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Fecha</th>
+          <th>Mensualidad</th>
+          <th>Uso</th>
+          <th>Plazo</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${leads.map(l => `
+          <tr id="row-${l.id}">
+            <td>${l.id}</td>
+            <td>${l.creado_en}</td>
+            <td>${l.mensualidad}</td>
+            <td>${l.uso}</td>
+            <td>${l.plazo}</td>
+            <td><span class="estado-badge estado-${l.estado}">${l.estado}</span></td>
+            <td>
+              <div class="acciones">
+                <button class="btn-accion btn-contactado" onclick="setEstado(${l.id},'contactado')">Contactado</button>
+                <button class="btn-accion btn-cerrado" onclick="setEstado(${l.id},'cerrado')">Cerrado</button>
+                <button class="btn-accion btn-descartado" onclick="setEstado(${l.id},'descartado')">Descartado</button>
+              </div>
+            </td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+async function setEstado(id, estado) {
+  const res = await fetch(`/api/leads/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', 'x-admin-password': password },
+    body: JSON.stringify({ estado })
+  });
+  if (res.ok) cargar();
+}
+</script>
+</body>
+</html>
