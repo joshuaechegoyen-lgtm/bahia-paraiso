@@ -87,6 +87,6 @@ app.patch('/api/leads/:id', (req, res) => {
   res.json({ ok: true });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Bahía Paraíso backend corriendo en http://localhost:${PORT}`);
 });
